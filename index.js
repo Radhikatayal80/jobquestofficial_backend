@@ -12,31 +12,31 @@ dotenv.config({});
 
 const app = express();
 
-// middleware
+// Middleware
 app.use(express.json());
-app.use(express.urlencoded({extended:true}));
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// CORS configuration
 const corsOptions = {
-    origin: "https://jobquestofficial-frontend.vercel.app", // Replace with your frontend URL
-    credentials: true,  // Allow sending cookies
-    methods: ["GET", "POST", "PUT", "DELETE"],  // Allow all necessary HTTP methods
-    allowedHeaders: ["Content-Type", "Authorization"], // Ensure headers are allowed
-}
+    origin: "https://jobquestofficial-frontend.vercel.app",  // ✅ Allow frontend requests
+    credentials: true,  // ✅ Allow cookies
+    methods: ["GET", "POST", "PUT", "DELETE"],  // ✅ Required HTTP methods
+    allowedHeaders: ["Content-Type", "Authorization"],  // ✅ Ensure necessary headers
+};
 
 app.use(cors(corsOptions));
 
 const PORT = process.env.PORT || 3000;
 
-
-// api's
+// API Routes
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/company", companyRoute);
 app.use("/api/v1/job", jobRoute);
 app.use("/api/v1/application", applicationRoute);
 
-
-
-app.listen(PORT,()=>{
+// Start server
+app.listen(PORT, () => {
     connectDB();
-    console.log(`Server running at port ${PORT}`);
-})
+    console.log(`🚀 Server running at port ${PORT}`);
+});
