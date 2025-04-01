@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 
 const isAuthenticated = async (req, res, next) => {
     try {
-        // ✅ Debugging: Log incoming cookies and headers (Remove in production)
+        // Log incoming cookies and headers (remove in production)
         console.log("Cookies received:", req.cookies);
         console.log("Authorization Header:", req.headers.authorization);
 
@@ -12,30 +12,40 @@ const isAuthenticated = async (req, res, next) => {
         if (!token) {
             return res.status(401).json({
                 success: false,
-                message: "User not authenticated. No token provided.",
+                message: "No token provided. User is not authenticated."
             });
         }
 
-        // ✅ Verify JWT Token
-        const decoded = jwt.verify(token, process.env.SECRET_KEY);
+        // Decode the token to extract user info (optional check)
+        const decoded = jwt.decode(token); // Decode to get user ID and other details
         if (!decoded) {
             return res.status(401).json({
                 success: false,
-                message: "Invalid token",
+                message: "Invalid token. Please log in again."
             });
         }
 
-        // Attach user ID to request object
-        req.id = decoded.userId;
-        next();
+        // Verify JWT Token
+        jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
+            if (err) {
+                return res.status(401).json({
+                    success: false,
+                    message: err.name === "TokenExpiredError" 
+                        ? "Token expired. Please log in again."
+                        : "Invalid token. Please log in again."
+                });
+            }
+
+            // Attach user ID to the request object
+            req.id = decoded.userId;
+            next();
+        });
+
     } catch (error) {
         console.error("Authentication Error:", error);
-
-        return res.status(401).json({
+        return res.status(500).json({
             success: false,
-            message: error.name === "JsonWebTokenError" ? "Invalid token" :
-                     error.name === "TokenExpiredError" ? "Token expired, please log in again" :
-                     "Authentication failed",
+            message: "Internal server error during authentication."
         });
     }
 };
